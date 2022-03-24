@@ -34,7 +34,7 @@ jobs:
       - name: Build project
         if: github.event_name == 'push'
         run: npm run build
-      - name: Deploy to Staging
+      - name: Deploy to Staging Surge
         if: github.event_name == 'push'
         run: npx surge --project ./build --domain workflows.surge.sh
         env:
