@@ -1,11 +1,10 @@
 name: CI
 on:
   pull_request:
-    branches: [dev]
+    branches: [dev, main]
 
   push: # merge request to dev
-    branches:
-      - "dev"
+    branches: [dev, main]
 
 jobs:
   build:
@@ -31,22 +30,20 @@ jobs:
       - run: npm test -- --coverage
         env:
           CI: true
-      - name: Upload Test Coverage
+      - name: Upload test coverage
         uses: actions/upload-artifact@v3
         with:
-          name: code-coverage
+          name: coverage
           path: coverage
       - name: Build project
         if: github.event_name == 'push'
         run: npm run build
-      - name: Upload Build Folder
-        if: github.event_name == 'push'
-        uses: actions/upload-artifact@v3
-        with:
-          name: build
-          path: build
-      - uses: actions/download-artifact
-      - name: Deploy to Staging
+      - name: Create a Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # github token is already created by default
+      - name: Deploy to Staging Surge
         if: github.event_name == 'push'
         run: npx surge --project ./build --domain workflows.surge.sh
         env:
