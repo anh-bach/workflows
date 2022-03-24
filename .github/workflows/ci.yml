@@ -1,11 +1,10 @@
 name: CI
 on:
   pull_request:
-    branches: [dev]
+    branches: [dev, main]
 
   push: # merge request to dev
-    branches:
-      - "dev"
+    branches: [dev, main]
 
 jobs:
   build:
@@ -39,6 +38,11 @@ jobs:
       - name: Build project
         if: github.event_name == 'push'
         run: npm run build
+      - name: Create a Release
+        if: github.event_name == 'push' && github.ref == "refs/heads/main"
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # github token is already created by default
       - name: Deploy to Staging Surge
         if: github.event_name == 'push'
         run: npx surge --project ./build --domain workflows.surge.sh
